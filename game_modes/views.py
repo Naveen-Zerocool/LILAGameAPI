@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework import status
 
 from LILAGameAPI.base_api_views import AuthenticatedAPIView
