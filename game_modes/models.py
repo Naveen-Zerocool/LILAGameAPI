@@ -4,6 +4,7 @@ from django.db import models
 
 from LILAGameAPI.base_model import GlobalBaseModel
 from LILAGameAPI.utils import get_current_date_time_in_utc
+from game_modes.utils import decrease_game_mode_counter_for_area_code
 
 
 class AreaCode(GlobalBaseModel):
@@ -67,7 +68,15 @@ class UserPreference(GlobalBaseModel):
         Used to make active preference inactive
         :param user_id: User PK
         """
-        UserPreference.objects.filter(is_current_preference=True, gamer_id=user_id).update(is_current_preference=False)
+        active_preferences = UserPreference.objects.filter(
+            is_current_preference=True, gamer_id=user_id
+        ).prefetch_related("area_code").values("area_code__area_code", "game_mode_id")
+        for preference in active_preferences:
+            decrease_game_mode_counter_for_area_code.delay(area_code=preference.get("area_code__area_code"),
+                                                           game_mode=str(preference.get("game_mode_id")))
+        if active_preferences:
+            UserPreference.objects.filter(is_current_preference=True, gamer_id=user_id
+                                          ).update(is_current_preference=False)
 
     @staticmethod
     def get_current_active_preference_by_user(user):
@@ -87,8 +96,7 @@ class UserPreference(GlobalBaseModel):
         :param game_mode: GameMode
         :return: UserPreference
         """
-        UserPreference.objects.filter(is_current_preference=True,
-                                      gamer_id=gamer.pk).update(is_current_preference=False)
+        UserPreference.make_active_user_preference_inactive_by_user_id(user_id=gamer.pk)
         area_code, created = AreaCode.objects.get_or_create(area_code=area_code)
         data = {"gamer_id": gamer.pk}
         if area_code:
