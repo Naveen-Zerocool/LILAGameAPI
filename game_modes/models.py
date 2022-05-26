@@ -2,16 +2,17 @@ from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from game_modes.utils import decrease_game_mode_counter_for_area_code
 from LILAGameAPI.base_model import GlobalBaseModel
 from LILAGameAPI.utils import get_current_date_time_in_utc
-from game_modes.utils import decrease_game_mode_counter_for_area_code
 
 
 class AreaCode(GlobalBaseModel):
-    area_code = models.PositiveSmallIntegerField(validators=[
-            MaxValueValidator(999),
-            MinValueValidator(000)
-        ], unique=True, help_text="3 digit Area Code")
+    area_code = models.PositiveSmallIntegerField(
+        validators=[MaxValueValidator(999), MinValueValidator(000)],
+        unique=True,
+        help_text="3 digit Area Code",
+    )
 
     def __str__(self):
         return f"{self.area_code}"
@@ -68,15 +69,20 @@ class UserPreference(GlobalBaseModel):
         Used to make active preference inactive
         :param user_id: User PK
         """
-        active_preferences = UserPreference.objects.filter(
-            is_current_preference=True, gamer_id=user_id
-        ).prefetch_related("area_code").values("area_code__area_code", "game_mode_id")
+        active_preferences = (
+            UserPreference.objects.filter(is_current_preference=True, gamer_id=user_id)
+            .prefetch_related("area_code")
+            .values("area_code__area_code", "game_mode_id")
+        )
         for preference in active_preferences:
-            decrease_game_mode_counter_for_area_code.delay(area_code=preference.get("area_code__area_code"),
-                                                           game_mode=str(preference.get("game_mode_id")))
+            decrease_game_mode_counter_for_area_code.delay(
+                area_code=preference.get("area_code__area_code"),
+                game_mode=str(preference.get("game_mode_id")),
+            )
         if active_preferences:
-            UserPreference.objects.filter(is_current_preference=True, gamer_id=user_id
-                                          ).update(is_current_preference=False)
+            UserPreference.objects.filter(
+                is_current_preference=True, gamer_id=user_id
+            ).update(is_current_preference=False)
 
     @staticmethod
     def get_current_active_preference_by_user(user):
@@ -85,7 +91,9 @@ class UserPreference(GlobalBaseModel):
         :param user: User
         :return: UserPreference
         """
-        return UserPreference.objects.filter(gamer=user, is_current_preference=True).first()
+        return UserPreference.objects.filter(
+            gamer=user, is_current_preference=True
+        ).first()
 
     @staticmethod
     def add_user_preference(gamer, area_code, game_mode):

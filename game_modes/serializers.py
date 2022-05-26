@@ -1,12 +1,12 @@
 from rest_framework import serializers
 
-from game_modes.models import UserPreference, GameMode
+from game_modes.models import GameMode, UserPreference
 
 
 class GameModeSerializer(serializers.ModelSerializer):
     class Meta:
         model = GameMode
-        fields = ['pk', 'name']
+        fields = ["pk", "name"]
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -23,4 +23,4 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserPreference
-        fields = ['pk', 'area_code', 'game_mode']
+        fields = ["pk", "area_code", "game_mode"]

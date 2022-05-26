@@ -9,16 +9,15 @@ from user_auth.utils import validate_user_password
 
 
 class RegisterView(GlobalAPIView):
-
     @required_params(params=["username", "email", "password", "first_name"])
     def post(self, request):
         data = request.data
         errors = {}
-        username = data.get('username')
-        email = data.get('email')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
-        password = data.get('password')
+        username = data.get("username")
+        email = data.get("email")
+        first_name = data.get("first_name")
+        last_name = data.get("last_name")
+        password = data.get("password")
 
         if not username:
             errors.update({"username": "Username is mandatory"})
@@ -39,11 +38,20 @@ class RegisterView(GlobalAPIView):
             errors.update({"email": "Email already exists"})
 
         if errors:
-            return StandardResponse(response_data={}, error=errors, http_status=status.HTTP_400_BAD_REQUEST,
-                                    message="Error while registering new user")
+            return StandardResponse(
+                response_data={},
+                error=errors,
+                http_status=status.HTTP_400_BAD_REQUEST,
+                message="Error while registering new user",
+            )
 
-        user = User.objects.create_user(username=username, email=email, password=password,
-                                        first_name=first_name, last_name=last_name)
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+        )
 
         serialized_data = UserSerializer(user).data
         message = "Successfully registered a user"
@@ -51,13 +59,12 @@ class RegisterView(GlobalAPIView):
 
 
 class LoginView(GlobalAPIView):
-
     @required_params(params=["username", "password"])
     def post(self, request):
         data = request.data
         errors = {}
-        username = data.get('username')
-        password = data.get('password')
+        username = data.get("username")
+        password = data.get("password")
 
         if not username:
             errors.update({"username": "Username is mandatory"})
@@ -69,14 +76,21 @@ class LoginView(GlobalAPIView):
             errors.update({"password": "Password is mandatory"})
 
         if errors:
-            return StandardResponse(response_data={}, error=errors, http_status=status.HTTP_400_BAD_REQUEST,
-                                    message="Error with user login")
+            return StandardResponse(
+                response_data={},
+                error=errors,
+                http_status=status.HTTP_400_BAD_REQUEST,
+                message="Error with user login",
+            )
 
         user = validate_user_password(username=username, password=password)
 
         if not user:
-            return StandardResponse(response_data={}, http_status=status.HTTP_400_BAD_REQUEST,
-                                    message="Username or password not valid")
+            return StandardResponse(
+                response_data={},
+                http_status=status.HTTP_400_BAD_REQUEST,
+                message="Username or password not valid",
+            )
 
         serialized_data = UserSerializer(user).data
         message = "Successfully logged in"
