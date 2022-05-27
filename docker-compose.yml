@@ -21,7 +21,7 @@ services:
   redis:
     image: "redis:alpine"
     hostname: redis
-    container_name: 'redis'
+    container_name: 'lila-redis'
     ports:
       - 6380:6379
     command: ["redis-server", "--bind 0.0.0.0"]
@@ -32,19 +32,19 @@ services:
 
   lila-backend:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     volumes:
-      - "./:/app/LILAGameAPI"
+      - ".:/app"
     ports:
-      - 7001:8000
+      - 8000:8000
     command: bash -c "python3 manage.py migrate && python3 manage.py collectstatic --noinput  && python3 manage.py runserver 0.0.0.0:8000"
     networks:
       - app-tier
 
   lila-celery-worker:
     build:
-      context: ..
+      context: .
       dockerfile: Dockerfile
     command: ["celery", "-A" ,"LILAGameAPI", "worker" , "-l", "info"]
     depends_on:
