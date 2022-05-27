@@ -94,9 +94,11 @@ class UserPreference(GlobalBaseModel):
         :param user: User
         :return: UserPreference
         """
-        return UserPreference.objects.filter(
-            gamer=user, is_current_preference=True
-        ).select_related("area_code", "game_mode", "gamer").first()
+        return (
+            UserPreference.objects.filter(gamer=user, is_current_preference=True)
+            .select_related("area_code", "game_mode", "gamer")
+            .first()
+        )
 
     @staticmethod
     def add_user_preference(gamer, area_code, game_mode):

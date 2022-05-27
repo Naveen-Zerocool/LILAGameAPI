@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('game_modes', '0001_initial'),
+        ("game_modes", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='userpreference',
-            name='is_current_preference',
+            model_name="userpreference",
+            name="is_current_preference",
             field=models.BooleanField(db_index=True, default=True),
         ),
     ]
