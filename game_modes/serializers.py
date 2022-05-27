@@ -23,4 +23,4 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserPreference
-        fields = ["pk", "area_code", "game_mode"]
+        fields = ["area_code", "game_mode"]

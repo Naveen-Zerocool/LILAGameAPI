@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from rest_framework import status
 
 from game_modes.models import GameMode, UserPreference
@@ -11,8 +12,11 @@ from LILAGameAPI.utils import required_params
 
 class GameModeView(AuthenticatedAPIView):
     def get(self, request):
-        game_modes = GameMode.get_all_active_game_modes()
-        serialized_data = GameModeSerializer(game_modes, many=True).data
+        serialized_data = cache.get("all_game_mode")
+        if not serialized_data:
+            game_modes = GameMode.get_all_active_game_modes()
+            serialized_data = GameModeSerializer(game_modes, many=True).data
+            cache.set("all_game_mode", serialized_data)
         return StandardResponse(
             response_data=serialized_data,
             message="Returned all game modes successfully",

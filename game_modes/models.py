@@ -1,6 +1,9 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 from game_modes.utils import decrease_game_mode_counter_for_area_code
 from LILAGameAPI.base_model import GlobalBaseModel
@@ -58,7 +61,7 @@ class UserPreference(GlobalBaseModel):
     game_mode = models.ForeignKey(GameMode, on_delete=models.PROTECT)
     area_code_mapped_at = models.DateTimeField()
     game_mode_mapped_at = models.DateTimeField()
-    is_current_preference = models.BooleanField(default=True)
+    is_current_preference = models.BooleanField(default=True, db_index=True)
 
     def __str__(self):
         return f"{self.gamer} - {self.area_code} - {self.game_mode}"
@@ -71,7 +74,7 @@ class UserPreference(GlobalBaseModel):
         """
         active_preferences = (
             UserPreference.objects.filter(is_current_preference=True, gamer_id=user_id)
-            .prefetch_related("area_code")
+            .select_related("area_code")
             .values("area_code__area_code", "game_mode_id")
         )
         for preference in active_preferences:
@@ -93,7 +96,7 @@ class UserPreference(GlobalBaseModel):
         """
         return UserPreference.objects.filter(
             gamer=user, is_current_preference=True
-        ).first()
+        ).select_related("area_code", "game_mode", "gamer").first()
 
     @staticmethod
     def add_user_preference(gamer, area_code, game_mode):
@@ -121,3 +124,8 @@ class UserPreference(GlobalBaseModel):
         verbose_name = "User Preference"
         verbose_name_plural = "User Preferences"
         db_table = "user_preferences"
+
+
+@receiver(post_save, sender=GameMode)
+def clear_cache(sender, instance, **kwargs):
+    cache.delete("all_game_mode")
