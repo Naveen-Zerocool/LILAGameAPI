@@ -1,4 +1,6 @@
 from django.contrib.auth.models import User
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 
 from LILAGameAPI.base_api_views import GlobalAPIView
@@ -9,6 +11,43 @@ from user_auth.utils import validate_user_password
 
 
 class RegisterView(GlobalAPIView):
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        operation_description="To register as new user",
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the user. Mandatory field'),
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email of the user. Mandatory field'),
+            'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='First name of the user. Mandatory field'),
+            'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Last name of the user. Optional field'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='Password of the user. Mandatory field'),
+        }),
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'pk': openapi.Schema(type=openapi.TYPE_STRING, description='PK of User'),
+                    'username': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the User'),
+                    'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='First name of the User'),
+                    'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Last name of the User'),
+                    'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email of the user'),
+                    'token': openapi.Schema(type=openapi.TYPE_STRING,
+                                            description='Token for using on all authenticated APIs'),
+                }
+            ),
+            400: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'username': openapi.Schema(type=openapi.TYPE_STRING,
+                                               description="If username already exists or not provided"),
+                    'email': openapi.Schema(type=openapi.TYPE_STRING,
+                                            description="If email already exists or not provided"),
+                    'first_name': openapi.Schema(type=openapi.TYPE_STRING,
+                                                 description="If first name not provided"),
+                    'password': openapi.Schema(type=openapi.TYPE_STRING, description="If password not provided"),
+                }
+            )
+        }
+    )
     @required_params(params=["username", "email", "password", "first_name"])
     def post(self, request):
         data = request.data
@@ -59,6 +98,36 @@ class RegisterView(GlobalAPIView):
 
 
 class LoginView(GlobalAPIView):
+    @swagger_auto_schema(request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        operation_description="Allow user to login",
+        properties={
+            'username': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the user. Mandatory field'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='Password of the user. Mandatory field'),
+        }),
+        responses={
+            200: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'pk': openapi.Schema(type=openapi.TYPE_STRING, description='PK of User'),
+                    'username': openapi.Schema(type=openapi.TYPE_STRING, description='Username of the User'),
+                    'first_name': openapi.Schema(type=openapi.TYPE_STRING, description='First name of the User'),
+                    'last_name': openapi.Schema(type=openapi.TYPE_STRING, description='Last name of the User'),
+                    'email': openapi.Schema(type=openapi.TYPE_STRING, description='Email of the user'),
+                    'token': openapi.Schema(type=openapi.TYPE_STRING,
+                                            description='Token for using on all authenticated APIs'),
+                }
+            ),
+            400: openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    'username': openapi.Schema(type=openapi.TYPE_STRING,
+                                               description="If username does not exists or not provided"),
+                    'password': openapi.Schema(type=openapi.TYPE_STRING, description="If password not provided"),
+                }
+            )
+        }
+    )
     @required_params(params=["username", "password"])
     def post(self, request):
         data = request.data
