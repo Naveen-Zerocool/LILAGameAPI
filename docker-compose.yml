@@ -1,0 +1,56 @@
+version: '3.2'
+
+networks:
+  app-tier:
+    driver: bridge
+
+services:
+  database:
+    image: "postgres:13.4"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=lila
+    ports:
+      - 5430:5432
+    volumes:
+      - database-data-pro:/var/lib/postgresql/data/ # persist data even if container shuts down
+    networks:
+      - app-tier
+
+  redis:
+    image: "redis:alpine"
+    hostname: redis
+    container_name: 'redis'
+    ports:
+      - 6380:6379
+    command: ["redis-server", "--bind 0.0.0.0"]
+    volumes:
+      - "./redis-data:/data"
+    networks:
+      - app-tier
+
+  lila-backend:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    volumes:
+      - "./:/app/LILAGameAPI"
+    ports:
+      - 7001:8000
+    command: bash -c "python3 manage.py migrate && python3 manage.py collectstatic --noinput  && python3 manage.py runserver 0.0.0.0:8000"
+    networks:
+      - app-tier
+
+  lila-celery-worker:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    command: ["celery", "-A" ,"LILAGameAPI", "worker" , "-l", "info"]
+    depends_on:
+      - lila-backend
+    networks:
+      - app-tier
+
+volumes:
+  database-data-pro:
