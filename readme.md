@@ -39,12 +39,18 @@ Below files can be found in the repo. We can run each API sequentially and the t
 1. git clone <repo_url>
 2. docker-compose -f docker-compose.yml up -d --build
 3. docker exec -it lilagameapi_lila-backend_1 bash
-4. python3 manage.py shell
-5. python3 manage.py createsuperuser
+4. python3 manage.py createsuperuser
+5. python3 manage.py shell
 6. `for game_mode in ["Capture the Flag", "Team Deathmatch", "Battle Royal"]:
                 GameMode.objects.create(name=game_mode)`
 
 Run above snippet on shell to create 3 game modes. Or follow step 7 to add game modes manually
+
+
 7. Go to http://127.0.0.1:8000/admin and login using the credentials created on step 4, Game Mode will be shown on dashboard. Kindly add  the game modes if adding manually
+
+
 8. We can use API docs or API postman collection to try out the APIs
+
+
 9. In Postman first import environment file and then API collection file
